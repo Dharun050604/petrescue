@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Pet Adoption System{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <h1>Find Your Perfect Companion</h1>
+    <p class="hero-text">Help reunite lost pets with their families or find your new best friend</p>
+    <div class="cta-buttons">
+        <a href="{% url 'search_pets' %}" class="btn-primary">Search Pets</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'report_pet' %}" class="btn-secondary">Report a Pet</a>
+        {% else %}
+            <a href="{% url 'register' %}" class="btn-secondary">Get Started</a>
+        {% endif %}
+    </div>
+</div>
+
+<section class="features">
+    <h2>How It Works</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h3>🔍 Search</h3>
+            <p>Browse through our database of found and adoptable pets</p>
+        </div>
+        <div class="feature-card">
+            <h3>📝 Report</h3>
+            <p>Report a lost or found pet to help reunite families</p>
+        </div>
+        <div class="feature-card">
+            <h3>💕 Adopt</h3>
+            <p>Find your perfect companion and give them a loving home</p>
+        </div>
+    </div>
+</section>
+
+{% if recent_pets %}
+<section class="recent-pets">
+    <h2>Recently Reported Pets</h2>
+    <div class="pet-grid">
+        {% for pet in recent_pets %}
+        <div class="pet-card">
+            {% if pet.image %}
+                <img src="{{ pet.image.url }}" alt="{{ pet.breed }}">
+            {% else %}
+                <div class="no-image">No Image</div>
+            {% endif %}
+            <h3>{{ pet.breed }}</h3>
+            <p><strong>Type:</strong> {{ pet.get_type_display }}</p>
+            <p><strong>Status:</strong> {{ pet.get_status_display }}</p>
+            <p><strong>Location:</strong> {{ pet.location }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}
