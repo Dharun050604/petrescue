@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ pet.breed }} - Details{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="detail-card">
+        <div class="detail-image">
+            {% if pet.image %}
+                <img src="{{ pet.image.url }}" alt="{{ pet.breed }}">
+            {% else %}
+                <div class="no-image-large">
+                    <span>🐾</span>
+                    <p>No Image Available</p>
+                </div>
+            {% endif %}
+            <span class="status-badge-large status-{{ pet.status }}">{{ pet.get_status_display }}</span>
+        </div>
+
+        <div class="detail-info">
+            <div class="detail-header">
+                <h1>{{ pet.breed }}</h1>
+                {% if pet.pet_name %}
+                    <p class="pet-name-large">🐾 {{ pet.pet_name }}</p>
+                {% endif %}
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <span class="info-icon">🐕</span>
+                    <div>
+                        <strong>Type</strong>
+                        <p>{{ pet.get_type_display }}</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <span class="info-icon">🎨</span>
+                    <div>
+                        <strong>Color</strong>
+                        <p>{{ pet.color }}</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <span class="info-icon">📍</span>
+                    <div>
+                        <strong>Location</strong>
+                        <p>{{ pet.location }}</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <span class="info-icon">📅</span>
+                    <div>
+                        <strong>Reported Date</strong>
+                        <p>{{ pet.reported_date|date:"F d, Y" }}</p>
+                    </div>
+                </div>
+
+                {% if pet.date_found %}
+                <div class="info-card">
+                    <span class="info-icon">🕐</span>
+                    <div>
+                        <strong>Date Found</strong>
+                        <p>{{ pet.date_found|date:"F d, Y" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if pet.date_lost %}
+                <div class="info-card">
+                    <span class="info-icon">🕐</span>
+                    <div>
+                        <strong>Date Lost</strong>
+                        <p>{{ pet.date_lost|date:"F d, Y" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="description-section">
+                <h3>📝 Description</h3>
+                <p>{{ pet.description }}</p>
+            </div>
+
+            <div class="contact-section">
+                <h3>👤 Reporter Information</h3>
+                <div class="reporter-card">
+                    <p><strong>Reported by:</strong> {{ pet.reported_by.username }}</p>
+                    <p><strong>Email:</strong> <a href="mailto:{{ pet.reported_by.email }}">{{ pet.reported_by.email }}</a></p>
+                    {% if pet.owner_contact %}
+                        <p><strong>Contact:</strong> {{ pet.owner_contact }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <a href="{% url 'search_pets' %}" class="btn-secondary">← Back to Search</a>
+                <a href="mailto:{{ pet.reported_by.email }}" class="btn-primary">📧 Contact Reporter</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

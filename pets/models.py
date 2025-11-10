@@ -18,6 +18,7 @@ class Pet(models.Model):
         ('dog', 'Dog'),
         ('cat', 'Cat'),
         ('bird', 'Bird'),
+        ('rabbit', 'Rabbit'),
         ('other', 'Other'),
     ]
     
@@ -25,6 +26,7 @@ class Pet(models.Model):
         ('lost', 'Lost'),
         ('found', 'Found'),
         ('adopted', 'Adopted'),
+        ('reunited', 'Reunited'),
     ]
 
     type = models.CharField(max_length=20, choices=PET_TYPES)
@@ -36,7 +38,14 @@ class Pet(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     reported_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     reported_date = models.DateTimeField(auto_now_add=True)
+    date_found = models.DateField(blank=True, null=True)  # New field
+    date_lost = models.DateField(blank=True, null=True)   # New field
+    pet_name = models.CharField(max_length=100, blank=True)  # For lost pets
+    owner_contact = models.CharField(max_length=100, blank=True)  # For lost pets
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-reported_date']
 
     def __str__(self):
         return f"{self.type} - {self.breed} ({self.status})"

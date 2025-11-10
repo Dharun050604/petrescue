@@ -14,5 +14,5 @@ venv/
 *.DS_Store
 
 # Compiled static files
-/static/
+
 " > .gitignore

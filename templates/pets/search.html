@@ -3,6 +3,236 @@
 {% block title %}Search Pets{% endblock %}
 
 {% block content %}
-<h1>Search Pets</h1>
-<p>Search functionality coming soon...</p>
+<div class="search-container">
+    <div class="search-header">
+        <h1>🔍 Search for Pets</h1>
+        <p class="subtitle">Find lost or found pets in your area</p>
+    </div>
+
+    <!-- Search Form -->
+    <div class="search-card">
+        <form method="get" class="search-form">
+            <div class="search-main">
+                <input 
+                    type="text" 
+                    name="q" 
+                    value="{{ query }}" 
+                    placeholder="Search by breed, location, or description..."
+                    class="search-input"
+                >
+                <button type="submit" class="btn-search">
+                    🔍 Search
+                </button>
+            </div>
+
+            <div class="filters-toggle" onclick="toggleFilters()">
+                <span>Advanced Filters</span>
+                <span class="toggle-icon">▼</span>
+            </div>
+
+            <div class="filters-section" id="filtersSection" style="display: none;">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Pet Type</label>
+                        <select name="type" class="filter-select">
+                            <option value="">All Types</option>
+                            <option value="dog" {% if selected_type == 'dog' %}selected{% endif %}>Dog</option>
+                            <option value="cat" {% if selected_type == 'cat' %}selected{% endif %}>Cat</option>
+                            <option value="bird" {% if selected_type == 'bird' %}selected{% endif %}>Bird</option>
+                            <option value="rabbit" {% if selected_type == 'rabbit' %}selected{% endif %}>Rabbit</option>
+                            <option value="other" {% if selected_type == 'other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select name="status" class="filter-select">
+                            <option value="">All Status</option>
+                            <option value="lost" {% if selected_status == 'lost' %}selected{% endif %}>Lost</option>
+                            <option value="found" {% if selected_status == 'found' %}selected{% endif %}>Found</option>
+                            <option value="reunited" {% if selected_status == 'reunited' %}selected{% endif %}>Reunited</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Breed</label>
+                        <input type="text" name="breed" placeholder="e.g., Labrador" class="filter-input">
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Color</label>
+                        <input type="text" name="color" placeholder="e.g., Brown" class="filter-input">
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Location</label>
+                        <input type="text" name="location" placeholder="e.g., New York" class="filter-input">
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Date From</label>
+                        <input type="date" name="date_from" class="filter-input">
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Date To</label>
+                        <input type="date" name="date_to" class="filter-input">
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button type="submit" class="btn-apply">Apply Filters</button>
+                    <a href="{% url 'search_pets' %}" class="btn-reset">Clear All</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Count -->
+    {% if query or selected_type or selected_status %}
+    <div class="results-info">
+        <p>Found <strong>{{ total_results }}</strong> result{{ total_results|pluralize }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Results Grid -->
+    {% if pets %}
+    <div class="results-grid">
+        {% for pet in pets %}
+        <div class="pet-result-card" onclick="window.location.href='{% url 'pet_detail' pet.id %}'">
+            <div class="pet-image-wrapper">
+                {% if pet.image %}
+                    <img src="{{ pet.image.url }}" alt="{{ pet.breed }}">
+                {% else %}
+                    <div class="no-image">
+                        <span>🐾</span>
+                    </div>
+                {% endif %}
+                <span class="status-tag status-{{ pet.status }}">{{ pet.get_status_display }}</span>
+            </div>
+
+            <div class="pet-info">
+                <h3>{{ pet.breed }}</h3>
+                {% if pet.pet_name %}
+                    <p class="pet-name">Name: {{ pet.pet_name }}</p>
+                {% endif %}
+                
+                <div class="pet-details">
+                    <div class="detail-item">
+                        <span class="icon">🐕</span>
+                        <span>{{ pet.get_type_display }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="icon">🎨</span>
+                        <span>{{ pet.color }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="icon">📍</span>
+                        <span>{{ pet.location|truncatewords:3 }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="icon">📅</span>
+                        <span>{{ pet.reported_date|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+
+                <p class="pet-description">{{ pet.description|truncatewords:15 }}</p>
+
+                <button class="btn-contact" onclick="event.stopPropagation(); showContact({{ pet.id }}, '{{ pet.reported_by.username }}', '{{ pet.reported_by.email }}', '{{ pet.owner_contact }}')">
+                    📞 Contact Reporter
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if pets.has_other_pages %}
+    <div class="pagination">
+        {% if pets.has_previous %}
+            <a href="?{{ request.GET.urlencode }}&page={{ pets.previous_page_number }}" class="page-btn">← Previous</a>
+        {% endif %}
+        
+        <span class="page-info">Page {{ pets.number }} of {{ pets.paginator.num_pages }}</span>
+        
+        {% if pets.has_next %}
+            <a href="?{{ request.GET.urlencode }}&page={{ pets.next_page_number }}" class="page-btn">Next →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="no-results">
+        <div class="empty-icon">🔍</div>
+        <h3>No Pets Found</h3>
+        <p>Try adjusting your search filters or check back later.</p>
+        <a href="{% url 'search_pets' %}" class="btn-primary">Clear Filters</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Contact Modal -->
+<div id="contactModal" class="modal" style="display: none;">
+    <div class="modal-content contact-modal">
+        <button class="modal-close" onclick="closeContactModal()">✕</button>
+        <h3>📞 Contact Information</h3>
+        <div id="contactInfo"></div>
+        <button class="btn-primary" onclick="closeContactModal()">Close</button>
+    </div>
+</div>
+
+<script>
+function toggleFilters() {
+    const filters = document.getElementById('filtersSection');
+    const icon = document.querySelector('.toggle-icon');
+    
+    if (filters.style.display === 'none') {
+        filters.style.display = 'block';
+        icon.textContent = '▲';
+    } else {
+        filters.style.display = 'none';
+        icon.textContent = '▼';
+    }
+}
+
+function showContact(petId, username, email, ownerContact) {
+    const modal = document.getElementById('contactModal');
+    const contactInfo = document.getElementById('contactInfo');
+    
+    let html = `
+        <div class="contact-details">
+            <div class="contact-item">
+                <strong>Reported by:</strong> ${username}
+            </div>
+            <div class="contact-item">
+                <strong>Email:</strong> <a href="mailto:${email}">${email}</a>
+            </div>
+    `;
+    
+    if (ownerContact) {
+        html += `
+            <div class="contact-item">
+                <strong>Owner Contact:</strong> ${ownerContact}
+            </div>
+        `;
+    }
+    
+    html += `</div>`;
+    contactInfo.innerHTML = html;
+    modal.style.display = 'flex';
+}
+
+function closeContactModal() {
+    document.getElementById('contactModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+document.getElementById('contactModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeContactModal();
+    }
+});
+</script>
 {% endblock %}

@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>🛡️ Admin Dashboard</h1>
+        <p class="subtitle">Manage pet reports and requests</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card pending">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-info">
+                <h3>{{ stats.pending }}</h3>
+                <p>Pending</p>
+            </div>
+        </div>
+        <div class="stat-card approved">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+                <h3>{{ stats.approved }}</h3>
+                <p>Approved</p>
+            </div>
+        </div>
+        <div class="stat-card rejected">
+            <div class="stat-icon">❌</div>
+            <div class="stat-info">
+                <h3>{{ stats.rejected }}</h3>
+                <p>Rejected</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <a href="?status=pending" class="tab {% if current_status == 'pending' %}active{% endif %}">
+            Pending ({{ stats.pending }})
+        </a>
+        <a href="?status=approved" class="tab {% if current_status == 'approved' %}active{% endif %}">
+            Approved ({{ stats.approved }})
+        </a>
+        <a href="?status=rejected" class="tab {% if current_status == 'rejected' %}active{% endif %}">
+            Rejected ({{ stats.rejected }})
+        </a>
+    </div>
+
+    <!-- Requests List -->
+    <div class="requests-container">
+        {% if requests %}
+            {% for req in requests %}
+            <div class="request-card status-{{ req.status }}">
+                <div class="request-image">
+                    {% if req.pet.image %}
+                        <img src="{{ req.pet.image.url }}" alt="{{ req.pet.breed }}">
+                    {% else %}
+                        <div class="no-image">
+                            <span>📷</span>
+                            <p>No Image</p>
+                        </div>
+                    {% endif %}
+                    <span class="status-badge badge-{{ req.status }}">{{ req.status|upper }}</span>
+                </div>
+                
+                <div class="request-details">
+                    <div class="request-header">
+                        <h3>{{ req.pet.breed }} - {{ req.pet.get_type_display }}</h3>
+                        <span class="request-date">{{ req.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    
+                    <div class="pet-info">
+                        <div class="info-item">
+                            <strong>Color:</strong> {{ req.pet.color }}
+                        </div>
+                        <div class="info-item">
+                            <strong>Location:</strong> {{ req.pet.location }}
+                        </div>
+                        <div class="info-item">
+                            <strong>Status:</strong> {{ req.pet.get_status_display }}
+                        </div>
+                        {% if req.pet.pet_name %}
+                        <div class="info-item">
+                            <strong>Pet Name:</strong> {{ req.pet.pet_name }}
+                        </div>
+                        {% endif %}
+                        {% if req.pet.owner_contact %}
+                        <div class="info-item">
+                            <strong>Contact:</strong> {{ req.pet.owner_contact }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="description">
+                        <strong>Description:</strong>
+                        <p>{{ req.pet.description|truncatewords:30 }}</p>
+                    </div>
+                    
+                    <div class="reporter-info">
+                        <strong>Reported by:</strong> {{ req.user.username }} ({{ req.user.email }})
+                    </div>
+                </div>
+                
+                {% if req.status == 'pending' %}
+                <div class="request-actions">
+                    <button class="btn-approve" onclick="updateStatus({{ req.id }}, 'approved')">
+                        ✅ Approve
+                    </button>
+                    <button class="btn-reject" onclick="updateStatus({{ req.id }}, 'rejected')">
+                        ❌ Reject
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            <!-- Pagination -->
+            {% if requests.has_other_pages %}
+            <div class="pagination">
+                {% if requests.has_previous %}
+                    <a href="?status={{ current_status }}&page={{ requests.previous_page_number }}" class="page-btn">← Previous</a>
+                {% endif %}
+                
+                <span class="page-info">Page {{ requests.number }} of {{ requests.paginator.num_pages }}</span>
+                
+                {% if requests.has_next %}
+                    <a href="?status={{ current_status }}&page={{ requests.next_page_number }}" class="page-btn">Next →</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="no-requests">
+                <div class="empty-icon">📭</div>
+                <h3>No {{ current_status }} requests</h3>
+                <p>There are currently no requests with this status.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>Confirm Action</h3>
+        <p id="modalMessage"></p>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn-primary" id="confirmBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentRequestId = null;
+let currentAction = null;
+
+function updateStatus(requestId, status) {
+    currentRequestId = requestId;
+    currentAction = status;
+    
+    const message = status === 'approved' 
+        ? 'Are you sure you want to approve this request?' 
+        : 'Are you sure you want to reject this request?';
+    
+    document.getElementById('modalMessage').textContent = message;
+    document.getElementById('confirmModal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('confirmModal').style.display = 'none';
+    currentRequestId = null;
+    currentAction = null;
+}
+
+document.getElementById('confirmBtn').addEventListener('click', function() {
+    if (currentRequestId && currentAction) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/request/${currentRequestId}/update/`;
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        form.innerHTML = `
+            <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+            <input type="hidden" name="status" value="${currentAction}">
+        `;
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+});
+
+// Close modal when clicking outside
+document.getElementById('confirmModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+</script>
+
+{% csrf_token %}
+{% endblock %}

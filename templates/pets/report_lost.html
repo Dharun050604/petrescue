@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Report Lost Pet{% endblock %}
+
+{% block content %}
+<div class="report-container lost-pet-theme">
+    <div class="report-header">
+        <h1>😢 Report a Lost Pet</h1>
+        <p class="subtitle">We'll help you find your beloved companion</p>
+    </div>
+
+    <div class="report-card">
+        <form method="post" enctype="multipart/form-data" class="report-form">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h3>🐾 Pet Information</h3>
+                
+                <div class="form-group">
+                    <label for="{{ form.pet_name.id_for_label }}">Pet Name *</label>
+                    {{ form.pet_name }}
+                    {% if form.pet_name.errors %}
+                        <span class="error">{{ form.pet_name.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.type.id_for_label }}">Pet Type *</label>
+                        {{ form.type }}
+                        {% if form.type.errors %}
+                            <span class="error">{{ form.type.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.breed.id_for_label }}">Breed *</label>
+                        {{ form.breed }}
+                        {% if form.breed.errors %}
+                            <span class="error">{{ form.breed.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.color.id_for_label }}">Color *</label>
+                        {{ form.color }}
+                        {% if form.color.errors %}
+                            <span class="error">{{ form.color.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_date_lost">Date Lost *</label>
+                        <input type="date" name="date_lost" id="id_date_lost" class="form-control" required max="{{ today }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.location.id_for_label }}">Last Seen Location *</label>
+                    {{ form.location }}
+                    {% if form.location.errors %}
+                        <span class="error">{{ form.location.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.owner_contact.id_for_label }}">Your Contact Information *</label>
+                    {{ form.owner_contact }}
+                    <small>Phone number or email where we can reach you</small>
+                    {% if form.owner_contact.errors %}
+                        <span class="error">{{ form.owner_contact.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.description.id_for_label }}">Description *</label>
+                    {{ form.description }}
+                    <small>Describe your pet's appearance, personality, and any distinctive features</small>
+                    {% if form.description.errors %}
+                        <span class="error">{{ form.description.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>📸 Photo Upload</h3>
+                
+                <div class="form-group">
+                    <label for="{{ form.image.id_for_label }}">Pet Photo *</label>
+                    <div class="image-upload-wrapper">
+                        {{ form.image }}
+                        <div class="upload-placeholder" id="uploadPlaceholder">
+                            <span class="upload-icon">📷</span>
+                            <p>Upload a clear photo of your pet</p>
+                            <small>Maximum file size: 5MB</small>
+                        </div>
+                        <div class="image-preview" id="imagePreview" style="display: none;">
+                            <img src="" alt="Preview" id="previewImg">
+                            <button type="button" class="remove-image" id="removeImage">✕</button>
+                        </div>
+                    </div>
+                    {% if form.image.errors %}
+                        <span class="error">{{ form.image.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="window.history.back()">Cancel</button>
+                <button type="submit" class="btn-primary">
+                    <span>Submit Report</span>
+                    <span class="btn-icon">💙</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('{{ form.image.id_for_label }}');
+    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const removeImageBtn = document.getElementById('removeImage');
+    
+    // Set max date to today
+    document.getElementById('id_date_lost').max = new Date().toISOString().split('T')[0];
+    
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be under 5MB');
+                fileInput.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                uploadPlaceholder.style.display = 'none';
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    removeImageBtn.addEventListener('click', function() {
+        fileInput.value = '';
+        uploadPlaceholder.style.display = 'flex';
+        imagePreview.style.display = 'none';
+        previewImg.src = '';
+    });
+});
+</script>
+{% endblock %}
