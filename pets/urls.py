@@ -19,5 +19,5 @@ urlpatterns = [
     
     # Admin
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('admin/request/<int:request_id>/update/', views.update_request_status, name='update_request_status'),
+    path('dashboard/request/<int:request_id>/update/', views.update_request_status, name='update_request_status'),
 ]

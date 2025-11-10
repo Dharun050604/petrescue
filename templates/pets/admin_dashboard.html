@@ -177,7 +177,7 @@ document.getElementById('confirmBtn').addEventListener('click', function() {
     if (currentRequestId && currentAction) {
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = `/admin/request/${currentRequestId}/update/`;
+        form.action = `/dashboard/request/${currentRequestId}/update/`;
         
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         form.innerHTML = `
