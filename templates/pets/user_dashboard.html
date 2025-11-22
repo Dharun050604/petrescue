@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}My Dashboard{% endblock %}
+
+{% block content %}
+<div class="user-dashboard-container">
+    <div class="dashboard-header">
+        <h1>👤 My Dashboard</h1>
+        <p class="subtitle">Manage your pet reports and track their status</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="dashboard-stats">
+        <div class="dash-stat-card total">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+                <h3>{{ stats.total_reports }}</h3>
+                <p>Total Reports</p>
+            </div>
+        </div>
+        <div class="dash-stat-card found">
+            <div class="stat-icon">🔍</div>
+            <div class="stat-info">
+                <h3>{{ stats.found_pets }}</h3>
+                <p>Found Pets</p>
+            </div>
+        </div>
+        <div class="dash-stat-card lost">
+            <div class="stat-icon">😢</div>
+            <div class="stat-info">
+                <h3>{{ stats.lost_pets }}</h3>
+                <p>Lost Pets</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Status Overview -->
+    <div class="status-overview">
+        <h2>📋 Request Status</h2>
+        <div class="status-cards">
+            <div class="status-item pending-status">
+                <span class="status-count">{{ stats.pending }}</span>
+                <span class="status-label">Pending</span>
+            </div>
+            <div class="status-item approved-status">
+                <span class="status-count">{{ stats.approved }}</span>
+                <span class="status-label">Approved</span>
+            </div>
+            <div class="status-item rejected-status">
+                <span class="status-count">{{ stats.rejected }}</span>
+                <span class="status-label">Rejected</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Reports -->
+    <div class="my-reports-section">
+        <h2>🐾 My Pet Reports</h2>
+        
+        {% if my_pets %}
+        <div class="reports-grid">
+            {% for pet in my_pets %}
+            <div class="user-pet-card">
+                <div class="pet-card-image">
+                    {% if pet.image %}
+                        <img src="{{ pet.image.url }}" alt="{{ pet.breed }}">
+                    {% else %}
+                        <div class="no-image">
+                            <span>🐾</span>
+                        </div>
+                    {% endif %}
+                    <span class="pet-status-badge status-{{ pet.status }}">
+                        {{ pet.get_status_display }}
+                    </span>
+                </div>
+
+                <div class="pet-card-content">
+                    <h3>{{ pet.breed }}</h3>
+                    {% if pet.pet_name %}
+                        <p class="pet-name">🐾 {{ pet.pet_name }}</p>
+                    {% endif %}
+
+                    <div class="pet-quick-info">
+                        <span>🎨 {{ pet.color }}</span>
+                        <span>📍 {{ pet.location|truncatewords:3 }}</span>
+                    </div>
+
+                    <p class="pet-date">📅 Reported: {{ pet.reported_date|date:"M d, Y" }}</p>
+
+                    <!-- Request Status -->
+                    {% with pet.request_set.first as req %}
+                        {% if req %}
+                        <div class="request-status-box status-{{ req.status }}">
+                            <strong>Status:</strong> {{ req.get_status_display|upper }}
+                        </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Actions -->
+                    <div class="pet-card-actions">
+                        <a href="{% url 'pet_detail' pet.id %}" class="btn-view">👁️ View</a>
+                        
+                        {% with pet.request_set.first as req %}
+                            {% if req.status == 'pending' %}
+                                <a href="{% url 'edit_pet' pet.id %}" class="btn-edit">✏️ Edit</a>
+                                <button onclick="confirmDelete({{ pet.id }}, '{{ pet.pet_name|default:pet.breed }}')" class="btn-delete">🗑️ Delete</button>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-reports">
+            <div class="empty-icon">📭</div>
+            <h3>No Reports Yet</h3>
+            <p>You haven't reported any pets yet.</p>
+            <div class="empty-actions">
+                <a href="{% url 'report_found_pet' %}" class="btn-primary">Report Found Pet</a>
+                <a href="{% url 'report_lost_pet' %}" class="btn-secondary">Report Lost Pet</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>⚠️ Confirm Deletion</h3>
+        <p id="deleteMessage"></p>
+        <form id="deleteForm" method="post" action="">
+            {% csrf_token %}
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="submit" class="btn-danger">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function confirmDelete(petId, petName) {
+    document.getElementById('deleteMessage').textContent = 
+        `Are you sure you want to delete the report for "${petName}"? This action cannot be undone.`;
+    document.getElementById('deleteForm').action = `/dashboard/pet/${petId}/delete/`;
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+</script>
+{% endblock %}

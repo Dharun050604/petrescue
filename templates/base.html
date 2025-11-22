@@ -17,8 +17,24 @@
                 <li><a href="{% url 'home' %}">Home</a></li>
                 <li><a href="{% url 'search_pets' %}">Search</a></li>
                 {% if user.is_authenticated %}
+                    <li><a href="{% url 'user_dashboard' %}">My Dashboard</a></li>
                     <li><a href="{% url 'report_found_pet' %}">Report Found</a></li>
                     <li><a href="{% url 'report_lost_pet' %}">Report Lost</a></li>
+
+                    <!-- Notifications -->
+                    <li class="notification-item">
+                        <a href="{% url 'notifications' %}" class="notification-link">
+                            Notifications
+                            {% with unread_count=request.user.notification_set.all|length %}
+                                {% if unread_count > 0 %}
+                                    <span class="notification-badge">
+                                        {{ unread_count }}
+                                    </span>
+                                {% endif %}
+                            {% endwith %}
+                        </a>
+                    </li>
+
                     {% if user.is_staff %}
                         <li><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
                     {% endif %}
@@ -50,8 +66,13 @@
     <footer>
         <div class="footer-content">
             <p>&copy; 2024 Pet Adoption System. All rights reserved.</p>
-            <p>Contact: info@petadoption.com | Phone: +1-234-567-8900</p>
+            <p>
+                <a href="{% url 'contact' %}" style="color: var(--primary); font-weight: 700;">Contact Us</a> | 
+                Email: info@petadoption.com | 
+                Phone: +1-234-567-8900
+            </p>
         </div>
     </footer>
+    <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

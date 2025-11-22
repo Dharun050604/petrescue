@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Pet Report{% endblock %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header">
+        <h1>✏️ Edit Pet Report</h1>
+        <p class="subtitle">Update the information for {{ pet.breed }}</p>
+    </div>
+
+    <div class="report-card">
+        <form method="post" enctype="multipart/form-data" class="report-form">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h3>📋 Pet Information</h3>
+                
+                {% if pet.status == 'lost' %}
+                <div class="form-group">
+                    <label for="{{ form.pet_name.id_for_label }}">Pet Name *</label>
+                    {{ form.pet_name }}
+                    {% if form.pet_name.errors %}
+                        <span class="error">{{ form.pet_name.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.type.id_for_label }}">Pet Type *</label>
+                        {{ form.type }}
+                        {% if form.type.errors %}
+                            <span class="error">{{ form.type.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.breed.id_for_label }}">Breed *</label>
+                        {{ form.breed }}
+                        {% if form.breed.errors %}
+                            <span class="error">{{ form.breed.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.color.id_for_label }}">Color *</label>
+                        {{ form.color }}
+                        {% if form.color.errors %}
+                            <span class="error">{{ form.color.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date {{ pet.get_status_display }} *</label>
+                        <input type="date" 
+                               name="{% if pet.status == 'found' %}date_found{% else %}date_lost{% endif %}" 
+                               value="{% if pet.status == 'found' %}{{ pet.date_found|date:'Y-m-d' }}{% else %}{{ pet.date_lost|date:'Y-m-d' }}{% endif %}"
+                               class="form-control" 
+                               required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.location.id_for_label }}">Location *</label>
+                    {{ form.location }}
+                    {% if form.location.errors %}
+                        <span class="error">{{ form.location.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                {% if pet.status == 'lost' %}
+                <div class="form-group">
+                    <label for="{{ form.owner_contact.id_for_label }}">Contact Information *</label>
+                    {{ form.owner_contact }}
+                    {% if form.owner_contact.errors %}
+                        <span class="error">{{ form.owner_contact.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="{{ form.description.id_for_label }}">Description *</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <span class="error">{{ form.description.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>📸 Photo Upload</h3>
+                
+                {% if pet.image %}
+                <div class="current-image">
+                    <p><strong>Current Image:</strong></p>
+                    <img src="{{ pet.image.url }}" alt="{{ pet.breed }}" style="max-width: 300px; border-radius: 15px;">
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="{{ form.image.id_for_label }}">Update Photo (optional)</label>
+                    {{ form.image }}
+                    {% if form.image.errors %}
+                        <span class="error">{{ form.image.errors.0 }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'user_dashboard' %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-primary">
+                    <span>Update Report</span>
+                    <span class="btn-icon">✨</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

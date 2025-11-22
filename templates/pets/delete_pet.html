@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Pet Report{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <div class="delete-card">
+        <div class="warning-icon">⚠️</div>
+        <h1>Delete Pet Report</h1>
+        <p class="warning-message">
+            Are you sure you want to delete the report for <strong>{{ pet.pet_name|default:pet.breed }}</strong>?
+        </p>
+        <p class="warning-note">This action cannot be undone!</p>
+
+        <div class="pet-preview">
+            {% if pet.image %}
+                <img src="{{ pet.image.url }}" alt="{{ pet.breed }}">
+            {% endif %}
+            <div class="preview-info">
+                <p><strong>Type:</strong> {{ pet.get_type_display }}</p>
+                <p><strong>Breed:</strong> {{ pet.breed }}</p>
+                <p><strong>Location:</strong> {{ pet.location }}</p>
+                <p><strong>Reported:</strong> {{ pet.reported_date|date:"M d, Y" }}</p>
+            </div>
+        </div>
+
+        <form method="post" class="delete-form">
+            {% csrf_token %}
+            <div class="delete-actions">
+                <a href="{% url 'user_dashboard' %}" class="btn-secondary">Cancel</a>
+                <button type="submit" class="btn-danger">Yes, Delete Report</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

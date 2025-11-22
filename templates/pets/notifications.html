@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <div class="notifications-header">
+        <h1>🔔 Notifications</h1>
+        <p class="subtitle">Stay updated with your pet reports</p>
+    </div>
+
+    <div class="notifications-actions">
+        <div class="notification-stats">
+            <span class="unread-count">{{ unread_count }} Unread</span>
+            <span class="total-count">{{ notifications.paginator.count }} Total</span>
+        </div>
+        {% if unread_count > 0 %}
+        <a href="{% url 'mark_all_read' %}" class="btn-mark-all">Mark All as Read</a>
+        {% endif %}
+    </div>
+
+    <div class="notifications-list">
+        {% if notifications %}
+            {% for notification in notifications %}
+            <div class="notification-card {% if not notification.is_read %}unread{% endif %}">
+                <div class="notification-icon">
+                    {% if notification.notification_type == 'new_request' %}
+                        📨
+                    {% elif notification.notification_type == 'status_update' %}
+                        {% if 'approved' in notification.message %}
+                            ✅
+                        {% else %}
+                            ❌
+                        {% endif %}
+                    {% else %}
+                        💬
+                    {% endif %}
+                </div>
+
+                <div class="notification-content">
+                    <h3>{{ notification.title }}</h3>
+                    <p>{{ notification.message }}</p>
+                    <span class="notification-time">{{ notification.created_at|timesince }} ago</span>
+                </div>
+
+                <div class="notification-actions">
+                    {% if not notification.is_read %}
+                        <a href="{% url 'mark_notification_read' notification.id %}" class="btn-mark-read">
+                            Mark as Read
+                        </a>
+                    {% endif %}
+                    {% if notification.related_request %}
+                        {% if user.is_staff %}
+                            <a href="{% url 'admin_dashboard' %}" class="btn-view-request">View</a>
+                        {% else %}
+                            <a href="{% url 'user_dashboard' %}" class="btn-view-request">View</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Pagination -->
+            {% if notifications.has_other_pages %}
+            <div class="pagination">
+                {% if notifications.has_previous %}
+                    <a href="?page={{ notifications.previous_page_number }}" class="page-btn">← Previous</a>
+                {% endif %}
+                
+                <span class="page-info">Page {{ notifications.number }} of {{ notifications.paginator.num_pages }}</span>
+                
+                {% if notifications.has_next %}
+                    <a href="?page={{ notifications.next_page_number }}" class="page-btn">Next →</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="no-notifications">
+                <div class="empty-icon">🔕</div>
+                <h3>No Notifications</h3>
+                <p>You're all caught up! No new notifications at the moment.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

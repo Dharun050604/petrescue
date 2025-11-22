@@ -1,7 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User
-from .models import Pet
+from .models import User, Pet, Contact
 
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -73,3 +72,13 @@ class LostPetForm(forms.ModelForm):
             'location': 'Last Seen Location',
         }
         
+class ContactForm(forms.ModelForm):
+    class Meta:
+        model = Contact
+        fields = ['name', 'email', 'subject', 'message']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'your@email.com'}),
+            'subject': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'What is this about?'}),
+            'message': forms.Textarea(attrs={'class': 'form-control', 'rows': 6, 'placeholder': 'Your message...'}),
+        }
